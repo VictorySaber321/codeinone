@@ -7,6 +7,21 @@ export default function DocumentationPanel({ code, language, onInsertDocs }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Fallback mock documentation generator
+  const generateMockDocumentation = () => {
+    return `/**
+ * Auto-generated documentation
+ * 
+ * Language: ${language}
+ * 
+ * This is a placeholder documentation.
+ * Set up your AI documentation API to get real documentation.
+ */
+ 
+// TODO: Add proper documentation using an AI service
+// You'll need to set up an API endpoint at /api/generate-docs`;
+  };
+
   const generateDocumentation = async () => {
     if (!code.trim()) {
       setError('No code to document');
@@ -25,15 +40,28 @@ export default function DocumentationPanel({ code, language, onInsertDocs }) {
         body: JSON.stringify({ code, language }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to generate documentation');
+      // Check if response is HTML (error page)
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('text/html')) {
+        // API endpoint likely doesn't exist, use mock data
+        console.warn('API endpoint not found, using mock documentation');
+        setDocumentation(generateMockDocumentation());
+        setIsLoading(false);
+        return;
       }
 
-      const data = await response.json();
-      setDocumentation(data.documentation);
+      // If we get here, we likely have a JSON response
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(responseData.error || 'Failed to generate documentation');
+      }
+
+      setDocumentation(responseData.documentation);
     } catch (err) {
-      setError(err.message);
-      console.error('Error generating documentation:', err);
+      // If fetch fails completely (network error, etc.), use mock data
+      console.warn('API request failed, using mock documentation:', err.message);
+      setDocumentation(generateMockDocumentation());
     } finally {
       setIsLoading(false);
     }
@@ -60,7 +88,7 @@ export default function DocumentationPanel({ code, language, onInsertDocs }) {
 
       {error && (
         <div className="error-message">
-          {error}
+          <strong>Error:</strong> {error}
         </div>
       )}
 
@@ -79,6 +107,12 @@ export default function DocumentationPanel({ code, language, onInsertDocs }) {
       {!documentation && !isLoading && !error && (
         <div className="placeholder">
           <p>Click "Generate Docs" to create documentation for your code</p>
+          <p className="note">
+            <small>
+              Note: You need to set up the API endpoint at <code>/api/generate-docs</code> for AI-powered documentation.
+              Currently using mock data.
+            </small>
+          </p>
         </div>
       )}
     </div>
