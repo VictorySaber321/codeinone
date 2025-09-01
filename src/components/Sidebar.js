@@ -112,24 +112,6 @@ export default function Sidebar({
           {renderFileTree(files)}
         </div>
       </div>
-
-      <div className="file-explorer">
-        <h3>AI TOOLS</h3>
-        <div className="file-tree">
-          <div className="file-tree-item">
-            <span className="file-icon">🤖</span>
-            <span className="file-name">Document</span>
-          </div>
-          <div className="file-tree-item">
-            <span className="file-icon">🧪</span>
-            <span className="file-name">Test</span>
-          </div>
-          <div className="file-tree-item">
-            <span className="file-icon">🔍</span>
-            <span className="file-name">Review</span>
-          </div>
-        </div>
       </div>
-    </div>
   );
 }
